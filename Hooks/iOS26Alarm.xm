@@ -18,12 +18,12 @@ static void styleAlarmView(UIView *view) {
             NSString *title = [b titleForState:UIControlStateNormal];
             if (title && [title containsString:@"稍后"]) {
                 [b setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-                b.backgroundColor = [UIColor colorWithRed:1.0 green:0.6 green:0.2 blue:1.0];
+                b.backgroundColor = [UIColor colorWithRed:1.0 green:0.6 blue:0.2 alpha:1.0];
                 b.layer.cornerRadius = b.bounds.size.height / 2;
                 b.titleLabel.font = [UIFont systemFontOfSize:18 weight:UIFontWeightBold];
             } else if (title && [title containsString:@"停止"]) {
                 [b setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-                b.backgroundColor = [UIColor colorWithRed:0.15 green:0.15 blue:0.15 blue:1.0];
+                b.backgroundColor = [UIColor colorWithRed:0.15 green:0.15 blue:0.15 alpha:1.0];
                 b.layer.cornerRadius = b.bounds.size.height / 2;
             }
         }
@@ -33,12 +33,13 @@ static void styleAlarmView(UIView *view) {
 %hook CSFullscreenNotificationViewController
 - (void)viewDidLoad {
     %orig;
-    self.view.backgroundColor = [UIColor blackColor];
+    UIView *v = [(id)self view];
+    v.backgroundColor = [UIColor blackColor];
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        styleAlarmView(self.view);
+        styleAlarmView([(id)self view]);
     });
 }
 %end
