@@ -1,6 +1,17 @@
 #import <UIKit/UIKit.h>
 #import <substrate.h>
 
+static void writeLog(NSString *msg) {
+    NSString *line = [NSString stringWithFormat:@"%@ %@\n", [NSDate date], msg];
+    NSData *data = [line dataUsingEncoding:NSUTF8StringEncoding];
+    NSString *p = @"/var/mobile/iOS26Alarm.log";
+    NSFileHandle *fh = [NSFileHandle fileHandleForWritingAtPath:p];
+    if (fh) { [fh seekToEndOfFile]; [fh writeData:data]; }
+    else { [data writeToFile:p atomically:YES]; }
+}
+
+static BOOL styled = NO;
+
 static void styleAlarmView(UIView *view) {
     view.backgroundColor = [UIColor blackColor];
     for (UIView *sub in view.subviews) {
@@ -30,14 +41,41 @@ static void styleAlarmView(UIView *view) {
     }
 }
 
+static void sweep(void) {
+    for (UIWindow *win in [UIApplication sharedApplication].windows) {
+        for (UIView *v in win.subviews) {
+            // 找全屏黑色/红色的闹钟界面
+            if (v.bounds.size.height > 500 && v.subviews.count > 3) {
+                // 检查有没有"稍后提醒"或"停止"按钮
+                BOOL hasAlarm = NO;
+                for (UIView *sub in v.subviews) {
+                    if ([sub isKindOfClass:[UIButton class]]) {
+                        NSString *t = [(UIButton *)sub titleForState:UIControlStateNormal];
+                        if (t && ([t containsString:@"稍后"] || [t containsString:@"停止"] || [t containsString:@"提醒"])) {
+                            hasAlarm = YES; break;
+                        }
+                    }
+                }
+                if (hasAlarm && !styled) {
+                    writeLog([NSString stringWithFormat:@"found alarm view %@", NSStringFromClass([v class])]);
+                    styleAlarmView(v);
+                    styled = YES;
+                }
+            }
+        }
+    }
+}
+
 %hook CSFullscreenNotificationViewController
 - (void)viewDidLoad {
     %orig;
+    writeLog(@"CSFullscreenNotificationViewController viewDidLoad");
     UIView *v = [(id)self view];
     v.backgroundColor = [UIColor blackColor];
 }
 - (void)viewDidAppear:(BOOL)animated {
     %orig;
+    writeLog(@"CSFullscreenNotificationViewController viewDidAppear");
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(0.3 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         styleAlarmView([(id)self view]);
     });
@@ -45,5 +83,10 @@ static void styleAlarmView(UIView *view) {
 %end
 
 %ctor {
-    NSLog(@"iOS26Alarm injected");
+    writeLog(@"iOS26Alarm injected");
+    dispatch_async(dispatch_get_main_queue(), ^{
+        NSTimer *t = [NSTimer scheduledTimerWithTimeInterval:0.5 repeats:YES block:^(NSTimer * _Nonnull t) {
+            sweep();
+        }];
+    });
 }
