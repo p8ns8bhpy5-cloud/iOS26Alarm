@@ -46,7 +46,7 @@ jobs:
       - name: Install SDK
         run: |
           mkdir -p "$THEOS/sdks"
-          STAGE="$(mktemp -d)"; trap 'rm -rf "$STAGE""' EXIT
+          STAGE="$(mktemp -d)"; trap 'rm -rf "$STAGE"' EXIT
           git clone --depth 1 --filter=blob:none --sparse https://github.com/theos/sdks.git "$STAGE/sdks"
           git -C "$STAGE/sdks" sparse-checkout set iPhoneOS16.5.sdk
           cp -R "$STAGE/sdks/iPhoneOS16.5.sdk" "$THEOS/sdks/"
