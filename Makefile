@@ -1,4 +1,4 @@
-export TARGET = iphone:clang:17.0:17.0
+export TARGET = iphone:clang:16.5:17.0
 export ARCHS = arm64 arm64e
 export THEOS_PACKAGE_SCHEME = rootless
 
