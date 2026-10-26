@@ -1,0 +1,8 @@
+Package: com.yourname.ios26alarm
+Name: iOS26Alarm
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: iOS 26 style alarm screen on iOS 17
+Maintainer: you
+Author: you
+Section: Tweaks
